@@ -11,7 +11,11 @@ import os
 @available(iOS 15.0, *)
 public final class VoidNet {
     
+    public static let shared = VoidNet()
+    
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "VoidNet")
+    
+    private init() { }
     
     public func request<T: Decodable>(
         endpoint: EndPoint,
