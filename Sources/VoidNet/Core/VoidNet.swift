@@ -22,17 +22,8 @@ public final class VoidNet {
         type: T.Type
     ) async throws -> T {
         do {
-            
             let request = try endpoint.asURLRequest()
-            logger.info("📤 Request: \(request.httpMethod ?? "Unknown method") \(request.url?.absoluteString ?? "Unknown URL", privacy: .public)")
-            
-            if let headers = request.allHTTPHeaderFields {
-                logger.info("📤 Headers: \(headers)")
-            }
-            
-            if let body = request.httpBody, let bodyString = String(data: body, encoding: .utf8) {
-                logger.info("📤 Body: \(bodyString)")
-            }
+            logRequest(request)
             
             logger.info("⏳ Starting request...")
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -42,12 +33,7 @@ public final class VoidNet {
                 throw VoidNetError.invalidResponse
             }
             
-            logger.info("📥 Received response with status code: \(httpResponse.statusCode)")
-            logger.info("📥 Response headers: \(httpResponse.allHeaderFields)")
-            
-            if let responseString = String(data: data, encoding: .utf8) {
-                logger.info("📥 Response body: \(responseString)")
-            }
+            logResponse(httpResponse, data: data, error: nil)
             
             guard (200...299).contains(httpResponse.statusCode) else {
                 logger.error("❌ HTTP error: \(httpResponse.statusCode)")
@@ -68,6 +54,41 @@ public final class VoidNet {
         } catch {
             logger.error("Unexpected error: \(error.localizedDescription)")
             throw error
+        }
+    }
+}
+
+@available(iOS 15.0, *)
+extension VoidNet {
+    
+    private func logRequest(_ request: URLRequest) {
+        logger.info("📤 Request: \(request.httpMethod ?? "Unknown method") \(request.url?.absoluteString ?? "Unknown URL", privacy: .public)")
+        
+        if let headers = request.allHTTPHeaderFields {
+            logger.info("📤 Headers: \(headers)")
+        }
+        
+        if let body = request.httpBody,
+           let jsonObject = try? JSONSerialization.jsonObject(with: body),
+           let prettyPrintedData = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
+           let bodyString = String(data: prettyPrintedData, encoding: .utf8) {
+            logger.info("📤 Body: \(bodyString, privacy: .sensitive)")
+        }
+    }
+    
+    private func logResponse(_ response: HTTPURLResponse, data: Data?, error: Error?) {
+        logger.info("📥 Received response with status code: \(response.statusCode)")
+        logger.info("📥 Response headers: \(response.allHeaderFields)")
+        
+        if let data = data,
+           let jsonObject = try? JSONSerialization.jsonObject(with: data),
+           let prettyPrintedData = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
+           let responseString = String(data: prettyPrintedData, encoding: .utf8) {
+            logger.info("📥 Response body: \(responseString, privacy: .sensitive)")
+        }
+        
+        if let error = error {
+            logger.error("❌ Error: \(error.localizedDescription, privacy: .public)")
         }
     }
 }
