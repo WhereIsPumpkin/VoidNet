@@ -9,7 +9,7 @@ import Foundation
 import os
 
 @available(iOS 15.0, *)
-final class VoidNet {
+public final class VoidNet {
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "VoidNet")
     
