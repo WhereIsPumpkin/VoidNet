@@ -65,7 +65,7 @@ extension VoidNet {
         logger.info("📤 Request: \(request.httpMethod ?? "Unknown method") \(request.url?.absoluteString ?? "Unknown URL", privacy: .public)")
         
         if let headers = request.allHTTPHeaderFields {
-            logger.info("📤 Headers: \(headers)")
+            logger.info("📤 Headers: \(self.formatHeaders(headers))")
         }
         
         if let body = request.httpBody,
@@ -90,5 +90,13 @@ extension VoidNet {
         if let error = error {
             logger.error("❌ Error: \(error.localizedDescription, privacy: .public)")
         }
+    }
+    
+    private func formatHeaders(_ headers: [AnyHashable: Any]) -> String {
+        var formattedHeaders = ""
+        for (key, value) in headers {
+            formattedHeaders += "\(key): \(value)\n"
+        }
+        return formattedHeaders.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
