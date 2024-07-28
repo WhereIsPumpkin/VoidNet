@@ -42,7 +42,6 @@ public final class VoidNet {
             
             do {
                 let decodedResponse = try JSONDecoder().decode(T.self, from: data)
-                logger.info("✅ Successfully decoded response of type: \(String(describing: T.self))")
                 return decodedResponse
             } catch {
                 logger.error("❌ Decoding error: \(error.localizedDescription)")
