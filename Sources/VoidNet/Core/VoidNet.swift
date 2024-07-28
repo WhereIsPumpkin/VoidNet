@@ -78,7 +78,7 @@ extension VoidNet {
     
     private func logResponse(_ response: HTTPURLResponse, data: Data?, error: Error?) {
         logger.info("📥 Received response with status code: \(response.statusCode)")
-        logger.info("📥 Response headers: \(response.allHeaderFields)")
+        logger.info("📥 Response headers: \(self.formatHeaders((response.allHeaderFields)))")
         
         if let data = data,
            let jsonObject = try? JSONSerialization.jsonObject(with: data),
