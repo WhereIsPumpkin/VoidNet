@@ -62,8 +62,11 @@ public final class VoidNet {
                 logger.error("❌ Decoding error: \(error.localizedDescription)")
                 throw VoidNetError.decodingError(error)
             }
+        } catch VoidNetError.invalidURL(let components) {
+            logger.error("Invalid URL: \n\(components)")
+            throw VoidNetError.invalidURL(components: components)
         } catch {
-            logger.error("❌ Request failed: \(error.localizedDescription)")
+            logger.error("Unexpected error: \(error.localizedDescription)")
             throw error
         }
     }

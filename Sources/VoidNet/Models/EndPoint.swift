@@ -57,9 +57,10 @@ public struct EndPoint {
 
 // MARK: - Extensions
 extension EndPoint {
+    
     public func asURLRequest() throws -> URLRequest {
         guard let url = self.url else {
-            throw VoidNetError.invalidURL
+            throw VoidNetError.invalidURL(components: debugDescription)
         }
         
         var request = URLRequest(url: url)
@@ -68,5 +69,18 @@ extension EndPoint {
         request.httpBody = body
         
         return request
+    }
+    
+    public var debugDescription: String {
+        return
+            """
+            Scheme: \(scheme.rawValue)
+            Host: \(host)
+            Path: \(path)
+            Query: \(query)
+            Method: \(method.rawValue)
+            Headers: \(headers)
+            Body: \(body?.count ?? 0) bytes
+            """
     }
 }

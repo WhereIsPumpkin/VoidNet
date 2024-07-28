@@ -6,7 +6,7 @@
 //
 
 public enum VoidNetError: Error {
-    case invalidURL
+    case invalidURL(components: String)
     case invalidResponse
     case httpError(Int)
     case decodingError(Error)
