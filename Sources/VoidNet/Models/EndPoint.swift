@@ -33,6 +33,7 @@ public struct EndPoint {
         self.scheme = scheme
         self.host = host
         self.path = path
+        self.port = port
         self.query = query
         self.method = method
         self.headers = headers
