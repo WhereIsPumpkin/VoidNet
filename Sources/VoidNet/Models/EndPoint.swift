@@ -12,6 +12,7 @@ public struct EndPoint {
     // MARK: - Properties
     public var scheme: Scheme
     public var host: String
+    public var port: Int?
     public var path: String
     public var query: Query
     public var method: HTTPMethod
@@ -22,6 +23,7 @@ public struct EndPoint {
     public init(
         scheme: Scheme = .https,
         host: String,
+        port: Int? = nil,
         path: String,
         query: Query = .emptyQuery,
         method: HTTPMethod = .get,
@@ -42,6 +44,7 @@ public struct EndPoint {
         var components = URLComponents()
         components.scheme = scheme.rawValue
         components.host = host
+        components.port = port
         components.path = path
         
         switch query {
@@ -76,6 +79,7 @@ extension EndPoint {
             """
             Scheme: \(scheme.rawValue)
             Host: \(host)
+            Port: \(port ?? 0)
             Path: \(path)
             Query: \(query)
             Method: \(method.rawValue)
