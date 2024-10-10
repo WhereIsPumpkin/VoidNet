@@ -76,16 +76,34 @@ extension EndPoint {
     }
     
     public var debugDescription: String {
-        return
-            """
-            Scheme: \(scheme.rawValue)
-            Host: \(host)
-            Port: \(port ?? 0)
-            Path: \(path)
-            Query: \(query)
-            Method: \(method.rawValue)
-            Headers: \(headers)
-            Body: \(body?.count ?? 0) bytes
-            """
+        var components = URLComponents()
+        components.scheme = scheme.rawValue
+        components.host = host
+        components.port = port
+        components.path = path
+        components.queryItems = {
+            switch query {
+            case .emptyQuery:
+                return nil
+            case .query(let queryItems):
+                return queryItems.map { URLQueryItem(name: $0.key, value: $0.value) }
+            }
+        }()
+        
+        let urlString = components.string ?? "Invalid URL components"
+
+        return """
+        Debug Description:
+        -------------------
+        URL: \(urlString)
+        Scheme: \(scheme.rawValue)
+        Host: \(host)
+        Port: \(port.map(String.init) ?? "N/A")
+        Path: \(path)
+        Query: \(query)
+        Method: \(method.rawValue)
+        Headers: \(headers.isEmpty ? "None" : headers.description)
+        Body: \(body?.count ?? 0) bytes
+        """
     }
 }
