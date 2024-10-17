@@ -55,6 +55,39 @@ public final class VoidNet {
             throw error
         }
     }
+    
+    public func requestEmpty(
+        endpoint: EndPoint
+    ) async throws {
+        do {
+            let request = try endpoint.asURLRequest()
+            logRequest(request)
+            
+            logger.info("⏳ Starting request...")
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                logger.error("❌ Invalid response type")
+                throw VoidNetError.invalidResponse
+            }
+            
+            logResponse(httpResponse, data: data, error: nil)
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                logger.error("❌ HTTP error: \(httpResponse.statusCode)")
+                throw VoidNetError.httpError(httpResponse.statusCode)
+            }
+            
+            return
+            
+        } catch VoidNetError.invalidURL(let components) {
+            logger.error("Invalid URL: \n\(components)")
+            throw VoidNetError.invalidURL(components: components)
+        } catch {
+            logger.error("Unexpected error: \(error.localizedDescription)")
+            throw error
+        }
+    }
 }
 
 @available(iOS 15.0, *)
