@@ -9,5 +9,6 @@ public enum VoidNetError: Error {
     case invalidURL(components: String)
     case invalidResponse
     case httpError(Int)
+    case invalidBody
     case decodingError(Error)
 }

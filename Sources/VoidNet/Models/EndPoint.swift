@@ -8,27 +8,26 @@
 import Foundation
 
 public struct EndPoint {
-    
     // MARK: - Properties
     public var scheme: Scheme
     public var host: String
     public var port: Int?
     public var path: String
-    public var query: Query
+    public var query: VoidNet.Query
     public var method: HTTPMethod
-    public var headers: [String: String]
-    public var body: Data?
-    
+    public var headers: VoidNet.Headers
+    public var body: VoidNet.Body
+
     // MARK: - Initialization
     public init(
         scheme: Scheme = .https,
         host: String,
         port: Int? = nil,
         path: String,
-        query: Query = .emptyQuery,
-        method: HTTPMethod = .get,
-        headers: [String: String] = [:],
-        body: Data? = nil
+        query: VoidNet.Query = .emptyQuery,
+        headers: VoidNet.Headers = .emptyHeaders,
+        body: VoidNet.Body = .emptyBody,
+        method: HTTPMethod
     ) {
         self.scheme = scheme
         self.host = host
@@ -39,7 +38,7 @@ public struct EndPoint {
         self.headers = headers
         self.body = body
     }
-    
+
     // MARK: - Computed Properties
     public var url: URL? {
         var components = URLComponents()
@@ -47,63 +46,66 @@ public struct EndPoint {
         components.host = host
         components.port = port
         components.path = path
-        
-        switch query {
-        case .emptyQuery:
-            components.queryItems = nil
-        case .query(let queryItems):
-            components.queryItems = queryItems.map { URLQueryItem(name: $0.key, value: $0.value) }
-        }
-        
+        components.queryItems = {
+            guard !query.isEmpty else { return nil }
+            return query.map { URLQueryItem(name: $0.key, value: "\($0.value)") }
+        }()
+
         return components.url
     }
 }
 
 // MARK: - Extensions
-extension EndPoint {
-    
-    public func asURLRequest() throws -> URLRequest {
-        guard let url = self.url else {
+public extension EndPoint {
+    func asURLRequest() throws -> URLRequest {
+        guard let url = url else {
             throw VoidNetError.invalidURL(components: debugDescription)
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.allHTTPHeaderFields = headers
-        request.httpBody = body
-        
+
+        if !body.isEmpty {
+            do {
+                request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+                if request.value(forHTTPHeaderField: "Content-Type") == nil {
+                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                }
+            } catch {
+                throw VoidNetError.invalidBody
+            }
+        }
+
         return request
     }
-    
-    public var debugDescription: String {
+
+    var debugDescription: String {
         var components = URLComponents()
         components.scheme = scheme.rawValue
         components.host = host
         components.port = port
         components.path = path
         components.queryItems = {
-            switch query {
-            case .emptyQuery:
-                return nil
-            case .query(let queryItems):
-                return queryItems.map { URLQueryItem(name: $0.key, value: $0.value) }
-            }
+            guard !query.isEmpty else { return nil }
+            return query.map { URLQueryItem(name: $0.key, value: "\($0.value)") }
         }()
-        
+
         let urlString = components.string ?? "Invalid URL components"
+        let fullURLString = url?.absoluteString ?? urlString
 
         return """
         Debug Description:
         -------------------
-        URL: \(urlString)
+        Full URL: \(fullURLString)
+        Method: \(method.rawValue)
         Scheme: \(scheme.rawValue)
         Host: \(host)
         Port: \(port.map(String.init) ?? "N/A")
         Path: \(path)
-        Query: \(query)
-        Method: \(method.rawValue)
+        Query: \(query.isEmpty ? "None" : query.map { "\($0.key)=\($0.value)" }.joined(separator: "&"))
         Headers: \(headers.isEmpty ? "None" : headers.description)
-        Body: \(body?.count ?? 0) bytes
+        Body: \(body.isEmpty ? "None" : "\(body.count) key-value pairs")
         """
     }
 }
