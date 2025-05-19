@@ -60,7 +60,7 @@ extension VoidNet {
         logger.info("📤 Request: \(request.httpMethod ?? "Unknown method") \(request.url?.absoluteString ?? "Unknown URL", privacy: .public)")
 
         if let headers = request.allHTTPHeaderFields {
-            logger.info("📤 Headers: \(formatHeaders(headers))")
+            logger.info("📤 Headers: \(self.formatHeaders(headers))")
         }
 
         if let body = request.httpBody,
@@ -74,7 +74,7 @@ extension VoidNet {
 
     private func logResponse(_ response: HTTPURLResponse, data: Data?, error: Error?) {
         logger.info("📥 Received response with status code: \(response.statusCode)")
-        logger.info("📥 Response headers: \(formatHeaders(response.allHeaderFields))")
+        logger.info("📥 Response headers: \(self.formatHeaders(response.allHeaderFields))")
 
         if let data = data,
            let jsonObject = try? JSONSerialization.jsonObject(with: data),
